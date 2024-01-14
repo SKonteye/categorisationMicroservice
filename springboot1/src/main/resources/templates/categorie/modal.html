@@ -1,0 +1,33 @@
+<!-- Contenu du modal d'ajout/modification de produit -->
+<div class="modal-dialog" role="document">
+	<div class="modal-content">
+		<div class="modal-header">
+			<h5 class="modal-title" th:text="${item != null && item.getId()!=null && item.getId()!=null ? 'Modifier la catégorie' : 'Ajouter une catégorie'}"></h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- Formulaire d'ajout/modification de produit -->
+			<form th:action="@{/categories/save}" th:object="${item}" method="post">
+				<input type="hidden" id="id_item" th:field="*{id}" th:value="${item!=null ? item.id?.toString() : ''}" />
+				<div class="form-group">
+					<label for="nom">Nom</label>
+					<input type="text" class="form-control" id="nom" th:field="*{nom}" th:value="${item != null && item.getId()!=null ? item.nom?.toString() : ''}" required>
+				</div>
+				<div class="form-group">
+					<label for="description">Description</label>
+					<textarea class="form-control" id="description" th:value="${item != null && item.getId()!=null ? item.description?.toString() : ''}"></textarea>
+				</div>
+				<div class="form-group">
+					<label for="categorieParent">Catégorie Parente:</label>
+					<select th:field="*{categorieParent.id}" id="categorieParent" name="categorieParentId" class="form-control select2 modalSelect2" placeholder="Catégorie Parente">
+						<option value="">Aucune</option> <!-- Option pour aucune catégorie parente -->
+						<option th:each="parent : ${categories}" th:value="${parent.id}" th:text="${parent.nom}"></option>
+					</select>
+				</div>
+				<button type="submit" class="btn btn-primary float-right" th:text="${item != null && item.getId()!=null && item.getId()!=null ? 'Modifier' : 'Ajouter'}"></button>
+			</form>
+		</div>
+	</div>
+</div>

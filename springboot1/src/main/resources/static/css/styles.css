@@ -1,0 +1,9 @@
+/* src/main/resources/static/css/styles.css */
+
+/* Styles pour les éléments désactivés */
+.page-item.disabled a.page-link {
+    pointer-events: none; /* Désactive les événements de souris */
+    color: #6c757d; /* Couleur de texte grisé */
+    background-color: #f8f9fa; /* Fond grisé */
+    border-color: #dee2e6; /* Bordure grise */
+}

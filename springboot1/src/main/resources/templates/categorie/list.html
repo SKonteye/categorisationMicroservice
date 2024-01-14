@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+	    <meta charset="UTF-8">
+	    <title>Liste des Catégories</title>
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-...." crossorigin="anonymous" />
+		<link rel="stylesheet" th:href="@{/css/styles.css}" />
+		<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+	</head>
+	<body>
+	    <div class="container mt-3">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h2>Liste des Catégories</h2>
+				<!-- Bouton pour ouvrir le modal -->
+				<div class="btn-group">
+					<button type="button" class="btn btn-success"><i class="fas fa-plus"></i> Actions</button>
+					<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<span class="sr-only">Toggle Dropdown</span>
+					</button>
+					<div class="dropdown-menu">
+						<a class="dropdown-item" href="#" onclick="loadItemModal(0)"><i class="fas fa-plus"></i> Un item</a>
+						<a class="dropdown-item" href="#"><i class="fas fa-file-excel"></i> Fichier Excel</a>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- Tableau pour afficher les catégories -->
+			<table class="table mt-3">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Nom</th>
+						<th>Catégorie Parent</th>
+						<th>Niveau</th>
+						<th><i class="fas fa-cogs"></i></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="item : ${items}">
+						<td th:text="${item?.id}"></td>
+						<td class="text-capitalize" th:text="${item.nom}"></td>
+						<td class="text-uppercase" >
+							<!--
+							<span th:with="ctg=${item.categorieParent}" th:each="i: ${#numbers.sequence(0, item.depth - 2)}">
+								<span th:if="${ctg != null}" th:text="${ctg?.nom}"></span>
+								<span th:if="${ctg.categorieParent != null}" th:with="ctg=${ctg?.categorieParent}"></span>
+							</span>
+							-->
+							<span th:each="parent: ${item.getCategorieParents()}">
+								<span th:text="${parent.nom}"></span>
+								<span th:unless="${#last}">, </span>
+							</span>
+						</td>
+						<td class="text-uppercase" th:text="${item.depth}"></td>
+						<td>
+							<button class="btn btn-warning" th:onclick="'loadItemModal(' + ${item?.id} + ')'"><i class="fas fa-pencil-alt"></i> Modifier</button>
+							<button class="btn btn-danger" th:onclick="'showConfirmationModal(' + ${item?.id} + ')'" ><i class="fas fa-trash"></i> Supprimer</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<!-- Ajoutez ici la pagination -->
+			<div th:if="${totalPages > 1}">
+				<ul class="pagination">
+					<li class="page-item" th:class="'page-item ' + ${currentNumber == 0 ? 'disabled' : ''}">
+						<a class="page-link" th:href="@{/categories/list(page=0)}">First</a>
+					</li>
+					<li class="page-item" th:class="'page-item ' + ${currentNumber == 0 ? 'disabled' : ''}">
+						<a class="page-link" th:href="@{/categories/list(page=${currentNumber - 1})}">Previous</a>
+					</li>
+
+					<li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:class="'page-item ' + ${i == currentNumber ? 'active' : ''}">
+						<a class="page-link" th:href="@{'/categories/list?page=' + ${i}}" th:text="${i + 1}">Page [[${i + 1}]]</a>
+					</li>
+
+					<li class="page-item" th:class="'page-item ' + ${currentNumber == totalPages - 1 ? 'disabled' : ''}">
+						<a class="page-link" th:href="@{/categories/list(page=${currentNumber + 1})}">Next</a>
+					</li>
+					<li class="page-item" th:class="'page-item ' + ${currentNumber == totalPages - 1 ? 'disabled' : ''}">
+						<a class="page-link" th:href="@{/categories/list(page=${totalPages - 1})}">Last</a>
+					</li>
+				</ul>
+			</div>
+
+	    </div>
+
+
+		<!-- Modal d'Ajout/Modification -->
+		<div class="modal fade" data-backdrop="static" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel" aria-hidden="true">
+			<!-- Contenu du modal chargé dynamiquement via AJAX -->
+		</div>
+
+		<!-- Modal de confirmation -->
+		<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="confirmationModalLabel">Confirmation de suppression</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						Êtes-vous sûr de vouloir supprimer cette donnée ?
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+						<button type="button" class="btn btn-danger" id="confirmDeleteButton">Supprimer</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- jQuery -->
+
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+		<!-- Bootstrap JS -->
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+		<script>
+			function loadItemModal(itemId, is_clone = false)
+			{
+				// Code JavaScript pour charger dynamiquement le contenu du modal via AJAX
+				$('#itemModal').load('/categories/modal/' + itemId);
+
+				if (is_clone)
+				{
+					$('#itemModal').find("#id_item").val("");
+				}
+				$('#itemModal').modal('show');
+
+				setTimeout(function ()
+				{
+					$('.select2')
+					.off('change')
+					.each(function (key, value)
+					{
+						var select2Options = {
+							placeholder: $(this).attr('placeholder') ? $(this).attr('placeholder').toUpperCase() : null
+						};
+
+						if ($(this).attr('class').indexOf('modal') !== -1)
+						{
+							select2Options.dropdownParent = $(this).parent().parent();
+							$(this).css("width", "100%");
+						}
+
+						$(this).select2(select2Options);
+
+					});
+				}, 1000);
+			}
+
+			function closeModal()
+			{
+				console.log('here am i');
+				$('#itemModal').modal('hide');
+			}
+
+			function showConfirmationModal(categoryId)
+			{
+				// Mettre à jour l'attribut href avec l'ID de la catégorie
+				var deleteUrl = '/categories/delete/' + categoryId;
+				$('#confirmDeleteButton').attr('onclick', 'deleteCategory(\'' + deleteUrl + '\')');
+
+				// Afficher la modal
+				$('#confirmationModal').modal('show');
+			}
+
+			function deleteCategory(deleteUrl)
+			{
+				// Envoyer la demande de suppression
+				$.ajax({
+					url: deleteUrl,
+					type: 'DELETE',
+					success: function () {
+						// Cacher la modal
+						$('#confirmationModal').modal('hide');
+
+						// Rafraîchir la page ou mettre à jour la liste des catégories
+						// (en fonction de votre logique spécifique)
+						location.reload();
+					},
+					error: function (error) {
+						console.error('Erreur lors de la suppression : ', error);
+					}
+				});
+			}
+		</script>
+	</body>
+</html>

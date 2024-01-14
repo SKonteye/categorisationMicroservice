@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Error</title>
+	</head>
+	<body>
+		<h1>Une erreur s'est produite</h1>
+		<p>Erreur : <span th:text="${#strings.abbreviate(${#httpServletRequest.requestURI}, 1024)}"></span></p>
+		<p>Sorry, something went wrong. Please try again later.</p>
+
+		<!-- Afficher les détails de l'erreur -->
+		<div th:if="${error}">
+			<!-- Afficher les détails de l'erreur -->
+			<div th:if="${#fields.hasErrors('message')}">
+				<p th:text="${#fields.errors('message')}"></p>
+			</div>
+			<!-- Afficher les détails complets de l'erreur (à des fins de débogage) -->
+			<div th:if="${error}">
+				<pre th:text="${#strings.toString(error)}"></pre>
+			</div>
+		</div>
+	</body>
+</html>
